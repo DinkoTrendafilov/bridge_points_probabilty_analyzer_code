@@ -1,0 +1,71 @@
+from math import comb
+from collections import defaultdict
+import matplotlib.pyplot as plt
+
+def calculate_point_distribution():
+    """Calculate the distribution of bridge hand points."""
+    d = defaultdict(int)
+    total_combinations = comb(52, 13)
+    
+    for aces in range(5):
+        for kings in range(5):
+            for queens in range(5):
+                for jacks in range(5):
+                    zero_cards = 13 - (aces + kings + queens + jacks)
+                    if 0 <= zero_cards <= 36:
+                        points = (aces * 4) + (kings * 3) + (queens * 2) + (jacks * 1)
+                        combinations = (comb(4, aces) * comb(4, kings) * comb(4, queens) *
+                                      comb(4, jacks) * comb(36, zero_cards))
+                        d[points] += combinations
+    
+    return dict(sorted(d.items())), total_combinations
+
+def print_distribution(sorted_d, total_combinations):
+    """Print the point distribution in a formatted table."""
+    print("-" * 112)
+    print(f"{'Points':<10} {'Combinations':<25} {'Probability':<15}")
+    print("-" * 112)
+    for (key, value) in sorted_d.items():
+        prob = value / total_combinations * 100
+        print(f"{key:<10} {value:_<25} {prob:.6f}%")
+    print("-" * 112)
+
+def plot_distribution(sorted_d):
+    """Create a visualization of the point distribution."""
+    points = list(sorted_d.keys())
+    probabilities = [value / comb(52, 13) * 100 for value in sorted_d.values()]
+    
+    plt.figure(figsize=(12, 6))
+    plt.bar(points, probabilities, color='#4e79a7')
+    plt.title('Probability Distribution of Bridge Hand Points', fontsize=14)
+    plt.xlabel('Points in Hand', fontsize=12)
+    plt.ylabel('Probability (%)', fontsize=12)
+    plt.grid(axis='y', linestyle='--', alpha=0.7)
+    plt.xticks(points)
+    
+    # Annotate the most common point value
+    max_prob = max(probabilities)
+    max_index = probabilities.index(max_prob)
+    plt.annotate(f'Most common: {points[max_index]} points\n{max_prob:.2f}%',
+                 xy=(points[max_index], max_prob),
+                 xytext=(points[max_index], max_prob + 2),
+                 arrowprops=dict(facecolor='black', shrink=0.05),
+                 ha='center')
+    
+    plt.tight_layout()
+    plt.savefig('bridge_point_distribution.png')
+    plt.show()
+
+def main():
+    """Main function to run the analysis."""
+    print("\nBridge Hand Probability Analyzer")
+    print("Calculating all possible 13-card combinations and their point values...\n")
+    
+    sorted_d, total_combinations = calculate_point_distribution()
+    print_distribution(sorted_d, total_combinations)
+    plot_distribution(sorted_d)
+    
+    print("\nAnalysis complete! Visualization saved as 'bridge_point_distribution.png'")
+
+if __name__ == "__main__":
+    main()
